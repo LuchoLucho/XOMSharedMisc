@@ -12,16 +12,25 @@ namespace aGame._2019
 {
     class Program
     {
+        static int sampleRate = 180 + 1;//The 1 is because of headers
+        static Complex32[] samples = new Complex32[sampleRate];
+        static Complex32[] originalSamples = new Complex32[sampleRate];
+        static Complex32[] inverseSamples = new Complex32[sampleRate];
+        static string[] lines = Properties.Resources.CustomerDataTimeSeries.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        static Dictionary<DateTime, float> parsedData = new Dictionary<DateTime, float>();
+        static DateTime[] sameDateTimes = new DateTime[sampleRate];
+
         static void Main(string[] args)
+        {   
+            turnDataIntoComplexNumberArray(sampleRate, samples, originalSamples, lines, parsedData, sameDateTimes);
+            Fourier.Forward(samples, FourierOptions.Matlab);        // Get frequency domain
+            applyFilter(sampleRate, samples, inverseSamples);       // Apply filters to show only main freq
+            Fourier.Inverse(inverseSamples, FourierOptions.Matlab); // Go back to time domain
+            saveDataAsNewCSV(samples, originalSamples, inverseSamples, sameDateTimes);
+        }
+
+        private static void turnDataIntoComplexNumberArray(int sampleRate, Complex32[] samples, Complex32[] originalSamples, string[] lines, Dictionary<DateTime, float> parsedData, DateTime[] sameDateTimes)
         {
-            int sampleRate = 180 + 1;//The 1 is because of headers
-            Complex32[] samples = new Complex32[sampleRate];
-            Complex32[] originalSamples = new Complex32[sampleRate];
-            Complex32[] inverseSamples = new Complex32[sampleRate];
-            string[] lines = Properties.Resources.CustomerDataTimeSeries.Split(new char[] { '\r', '\n' },StringSplitOptions.RemoveEmptyEntries);
-            Dictionary<DateTime, float> parsedData = new Dictionary<DateTime, float>();
-            DateTime[] sameDateTimes = new DateTime[sampleRate];
-            //----
             IOrderedEnumerable<KeyValuePair<DateTime, float>> orderD = getDataSortedByDate(sampleRate, lines, parsedData);
             int j = 0;
             foreach (KeyValuePair<DateTime, float> keyValuePair in orderD)
@@ -33,10 +42,6 @@ namespace aGame._2019
                 sameDateTimes[j] = keyValuePair.Key;
                 j++;
             }
-            Fourier.Forward(samples, FourierOptions.Matlab);
-            applyFilter(sampleRate, samples, inverseSamples);
-            Fourier.Inverse(inverseSamples, FourierOptions.Matlab);
-            saveDataAsNewCSV(samples, originalSamples, inverseSamples, sameDateTimes);
         }
 
         private static void saveDataAsNewCSV(Complex32[] samples, Complex32[] originalSamples, Complex32[] inverseSamples, DateTime[] sameDateTimes)
