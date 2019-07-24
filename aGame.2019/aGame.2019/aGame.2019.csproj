@@ -63,6 +63,7 @@
     <EmbeddedResource Include="resources\CustomerDataTimeSeries.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <None Include="resources\aGameFFTAnalysis.xlsx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
